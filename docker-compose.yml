@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: 'postgres:15-alpine'
+    container_name: musicstream-db
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=secret
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ 'CMD-SHELL', 'pg_isready -U myuser -d mydatabase' ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend/backend
+      dockerfile: Dockerfile
+    container_name: musicstream-backend
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydatabase
+      - SPRING_DATASOURCE_USERNAME=myuser
+      - SPRING_DATASOURCE_PASSWORD=secret
+      - APP_CORS_ALLOWED_ORIGINS=http://localhost:80,http://localhost:4200
+    ports:
+      - '8080:8080'
+    volumes:
+      - uploads-data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: musicstream-frontend
+    ports:
+      - '80:80'
+    depends_on:
+      - backend
+
+volumes:
+  postgres-data:
+  uploads-data:
