@@ -66,7 +66,7 @@ public class TrackService {
                 .title(request.getTitle())
                 .artist(request.getArtist())
                 .description(request.getDescription())
-                .duration(0) // Will be set by frontend or calculated
+                .duration(0)
                 .audioFileName(audioFileName)
                 .category(category)
                 .build();
